@@ -3,106 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌹</title>
+  <title>Perdón...</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
+      margin: 0;
       background: black;
       overflow: hidden;
     }
     canvas {
       display: block;
-      width: 100vw;
-      height: 100vh;
-      background: black;
     }
-    .message {
+    #mensaje {
       position: absolute;
       bottom: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 2.5rem;
-      color: #fff;
+      width: 100%;
       text-align: center;
-      text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
-      opacity: 0;
-      transition: opacity 2s ease-in-out;
-    }
-    @media (max-width: 600px) {
-      .message { font-size: 1.8rem; padding: 0 20px; }
+      font-size: 28px;
+      font-family: Arial, sans-serif;
+      color: white;
     }
   </style>
 </head>
 <body>
   <canvas id="canvas"></canvas>
-  <div class="message" id="message">Perdón, no quería hacerlo 🥺</div>
+  <div id="mensaje">Perdón,<br> no quería hacerlo 🥺🖤</div>
 
   <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const message = document.getElementById('message');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    async function cargarRosa() {
+      const resp = await fetch("https://josedavidbarreraortiz-ux.github.io/flor/rosas.json");
+      return await resp.json();
+    }
 
-    const jsonURL = "https://josedavidbarreraortiz-ux.github.io/flor/rosas.json";
+    function dibujarRosa(data) {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
 
-    fetch(jsonURL)
-      .then(res => res.json())
-      .then(regions => animateFill(regions))
-      .catch(err => alert("Error cargando JSON: " + err.message));
+      const regions = data.regions;
+      const offsetY = -120; // 🔼 mueve la rosa hacia arriba
 
-    function animateFill(regions) {
-      // Calcular límites para centrar
-      const all_points = [];
-      for (let r of regions) {
-        for (let p of r.contour) {
-          all_points.push([p[0], p[1]]);
-        }
-      }
-      const min_x = Math.min(...all_points.map(p => p[0]));
-      const max_x = Math.max(...all_points.map(p => p[0]));
-      const min_y = Math.min(...all_points.map(p => p[1]));
-      const max_y = Math.max(...all_points.map(p => p[1]));
-
-      const width = max_x - min_x;
-      const height = max_y - min_y;
-      const scale = Math.min((canvas.width * 0.8) / width, (canvas.height * 0.8) / height);
-      const center_x = (min_x + max_x) / 2;
-      const center_y = (min_y + max_y) / 2;
-
-      // Convertir regiones en formas listas para dibujar
       const shapes = regions.map(region => {
         const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
         const points = region.contour.map(p => [
-          (p[0] - center_x) * scale + canvas.width / 2,
-          (center_y - p[1]) * scale + canvas.height / 2
+          (p[0] - data.center_x) * data.scale + canvas.width / 2,
+          (data.center_y - p[1]) * data.scale + canvas.height / 2 + offsetY
         ]);
         return { color, points };
       });
 
       let index = 0;
-      function drawNext() {
+      function drawStep() {
         if (index < shapes.length) {
-          const { color, points } = shapes[index];
-          ctx.fillStyle = color;
+          const shape = shapes[index];
+          ctx.fillStyle = shape.color;
           ctx.beginPath();
-          ctx.moveTo(points[0][0], points[0][1]);
-          for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i][0], points[i][1]);
-          }
+          ctx.moveTo(shape.points[0][0], shape.points[0][1]);
+          shape.points.forEach(p => ctx.lineTo(p[0], p[1]));
           ctx.closePath();
           ctx.fill();
-
           index++;
-          setTimeout(drawNext, 100); // velocidad del "pintado" (100ms por pétalo)
-        } else {
-          // Cuando termine, mostrar mensaje
-          setTimeout(() => { message.style.opacity = 1; }, 500);
+          setTimeout(drawStep, 30); // velocidad de dibujo
         }
       }
-
-      drawNext();
+      drawStep();
     }
+
+    (async function () {
+      const data = await cargarRosa();
+      dibujarRosa(data);
+    })();
   </script>
 </body>
 </html>
