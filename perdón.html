@@ -15,7 +15,7 @@
     }
     #mensaje {
       position: absolute;
-      bottom: 5%; /* un poco más arriba para que no quede tan pegado abajo */
+      bottom: 12%; /* más arriba que antes */
       width: 100%;
       text-align: center;
       font-size: 28px;
@@ -41,13 +41,13 @@
       canvas.height = window.innerHeight;
 
       const regions = data.regions;
-      const offsetY = -80; // 🔼 sube la rosa, ajusta este valor
+      const offsetY = -120; // 🔼 sube la rosa 120px
 
       const shapes = regions.map(region => {
         const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
         const points = region.contour.map(p => [
           (p[0] - data.center_x) * data.scale + canvas.width / 2,
-          (data.center_y - p[1]) * data.scale + (canvas.height / 2 + offsetY)
+          canvas.height / 2 - (p[1] - data.center_y) * data.scale + offsetY
         ]);
         return { color, points };
       });
@@ -76,6 +76,3 @@
   </script>
 </body>
 </html>
-
-
-
