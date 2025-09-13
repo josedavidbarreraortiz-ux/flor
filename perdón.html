@@ -15,7 +15,7 @@
     }
     #mensaje {
       position: absolute;
-      bottom: 12%; /* un poco más arriba para que no quede tan pegado abajo */
+      bottom: 5%; /* un poco más arriba para que no quede tan pegado abajo */
       width: 100%;
       text-align: center;
       font-size: 28px;
@@ -41,7 +41,7 @@
       canvas.height = window.innerHeight;
 
       const regions = data.regions;
-      const offsetY = -120; // 🔼 sube la rosa, ajusta este valor
+      const offsetY = -85; // 🔼 sube la rosa, ajusta este valor
 
       const shapes = regions.map(region => {
         const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
@@ -76,4 +76,5 @@
   </script>
 </body>
 </html>
+
 
