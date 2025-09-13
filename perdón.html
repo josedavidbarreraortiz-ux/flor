@@ -15,7 +15,7 @@
     }
     #mensaje {
       position: absolute;
-      bottom: 12%; /* lo subimos un poco */
+      bottom: 12%;
       width: 100%;
       text-align: center;
       font-size: 28px;
@@ -62,12 +62,15 @@
 
       const width = max_x - min_x;
       const height = max_y - min_y;
-      const scale = Math.min((canvas.width * 0.7) / width, (canvas.height * 0.7) / height);
 
+      // 🔥 Ajuste según el dispositivo
+      const isMobile = window.innerWidth < 600;
+      const scaleFactor = isMobile ? 0.95 : 0.7; // más grande en móvil
+      const offsetY = isMobile ? -60 : -120;     // menos desplazado en móvil
+
+      const scale = Math.min((canvas.width * scaleFactor) / width, (canvas.height * scaleFactor) / height);
       const center_x = (min_x + max_x) / 2;
       const center_y = (min_y + max_y) / 2;
-
-      const offsetY = -120; // 🔼 sube la flor
 
       let index = 0;
       function drawStep() {
