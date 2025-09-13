@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Perdón...</title>
+  <title>Perdón 🌹</title>
   <style>
     body {
       margin: 0;
@@ -15,7 +15,7 @@
     }
     #mensaje {
       position: absolute;
-      bottom: 10%;
+      bottom: 12%; /* un poco más arriba para que no quede tan pegado abajo */
       width: 100%;
       text-align: center;
       font-size: 28px;
@@ -26,7 +26,7 @@
 </head>
 <body>
   <canvas id="canvas"></canvas>
-  <div id="mensaje">Perdón,<br> no quería hacerlo 🥺🖤</div>
+  <div id="mensaje">Perdón,<br>no quería hacerlo 🥺🖤</div>
 
   <script>
     async function cargarRosa() {
@@ -41,13 +41,13 @@
       canvas.height = window.innerHeight;
 
       const regions = data.regions;
-      const offsetY = -200; // 🔼 mueve la rosa hacia arriba
+      const offsetY = -80; // 🔼 sube la rosa, ajusta este valor
 
       const shapes = regions.map(region => {
         const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
         const points = region.contour.map(p => [
           (p[0] - data.center_x) * data.scale + canvas.width / 2,
-          (data.center_y - p[1]) * data.scale + canvas.height / 2 + offsetY
+          (data.center_y - p[1]) * data.scale + (canvas.height / 2 + offsetY)
         ]);
         return { color, points };
       });
@@ -76,4 +76,3 @@
   </script>
 </body>
 </html>
-
