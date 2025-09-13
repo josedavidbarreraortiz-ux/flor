@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌹</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        canvas {
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            background: #000;
+            margin-bottom: 40px;
+        }
+        
+        .message {
+            font-size: 2.5rem;
+            color: #fff;
+            text-align: center;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out 3s forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 600px) {
+            canvas {
+                width: 90vw;
+                height: 67.5vw; /* Mantiene proporción 4:3 */
+            }
+            
+            .message {
+                font-size: 1.8rem;
+                padding: 0 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="600" height="450"></canvas>
+    <div class="message">Perdón, no quería hacerlo 🥺</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Limpiar canvas
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Datos de la rosa (puedes pegar aquí tu JSON)
+        const rosaData = [
+            {
+                "color": [255, 120, 150],
+                "contour": [[300, 100], [400, 120], [450, 200], [420, 280], [350, 320], [300, 300], [250, 320], [180, 280], [150, 200], [200, 120]]
+            },
+            {
+                "color": [255, 80, 120],
+                "contour": [[300, 140], [360, 150], [380, 200], [360, 250], [320, 270], [300, 260], [280, 270], [240, 250], [220, 200], [240, 150]]
+            },
+            {
+                "color": [255, 40, 80],
+                "contour": [[300, 170], [330, 180], [340, 210], [325, 240], [300, 250], [275, 240], [260, 210], [270, 180]]
+            },
+            {
+                "color": [120, 200, 100],
+                "contour": [[200, 300], [250, 280], [300, 290], [350, 300], [380, 330], [360, 380], [320, 420], [280, 430], [220, 420], [180, 380], [160, 330]]
+            },
+            {
+                "color": [100, 180, 80],
+                "contour": [[380, 320], [420, 310], [450, 340], [440, 380], [420, 420], [390, 440], [360, 430], [340, 400], [350, 360], [370, 330]]
+            }
+        ];
+        
+        function drawRose() {
+            // Calcular límites
+            let allPoints = [];
+            rosaData.forEach(region => {
+                region.contour.forEach(point => {
+                    allPoints.push([point[0], point[1]]);
+                });
+            });
+            
+            const minX = Math.min(...allPoints.map(p => p[0]));
+            const maxX = Math.max(...allPoints.map(p => p[0]));
+            const minY = Math.min(...allPoints.map(p => p[1]));
+            const maxY = Math.max(...allPoints.map(p => p[1]));
+            
+            const width = maxX - minX;
+            const height = maxY - minY;
+            const scale = Math.min((canvas.width - 100) / width, (canvas.height - 100) / height);
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+            
+            let delay = 0;
+            
+            // Dibujar cada región con animación
+            rosaData.forEach((region, index) => {
+                setTimeout(() => {
+                    const r = Math.floor(region.color[0]);
+                    const g = Math.floor(region.color[1]);
+                    const b = Math.floor(region.color[2]);
+                    const color = `rgb(${r}, ${g}, ${b})`;
+                    
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    
+                    const points = region.contour;
+                    if (points.length > 0) {
+                        const firstX = (points[0][0] - centerX) * scale + canvas.width / 2;
+                        const firstY = (centerY - points[0][1]) * scale + canvas.height / 2;
+                        ctx.moveTo(firstX, firstY);
+                        
+                        for (let i = 1; i < points.length; i++) {
+                            const x = (points[i][0] - centerX) * scale + canvas.width / 2;
+                            const y = (centerY - points[i][1]) * scale + canvas.height / 2;
+                            ctx.lineTo(x, y);
+                        }
+                        
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+                }, delay);
+                
+                delay += 500; // 500ms entre cada parte
+            });
+        }
+        
+        // Iniciar después de un momento
+        setTimeout(drawRose, 500);
+    </script>
+</body>
+</html>
