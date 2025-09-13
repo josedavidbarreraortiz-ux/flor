@@ -1,118 +1,121 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌹</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
-        }
-        canvas {
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            background: #000;
-            margin-bottom: 40px;
-        }
-        .message {
-            font-size: 2.5rem;
-            color: #fff;
-            text-align: center;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-            opacity: 0;
-            animation: fadeIn 2s ease-in-out 3s forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @media (max-width: 600px) {
-            canvas { width: 90vw; height: 67.5vw; }
-            .message { font-size: 1.8rem; padding: 0 20px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌹</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: black;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      background: black;
+    }
+    .message {
+      position: absolute;
+      bottom: 10%;
+      font-size: 2.5rem;
+      color: #fff;
+      text-align: center;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+    }
+    @media (max-width: 600px) {
+      .message { font-size: 1.8rem; padding: 0 20px; }
+    }
+  </style>
 </head>
 <body>
-    <canvas id="canvas" width="800" height="800"></canvas>
-    <div class="message">Perdón, no quería hacerlo 🥺</div>
+  <canvas id="canvas"></canvas>
+  <div class="message" id="message">Perdón, no quería hacerlo 🥺</div>
 
-    <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const message = document.getElementById('message');
 
-        // Inicializar canvas negro
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-        // URL de tu JSON en GitHub Pages
-        const jsonURL = "https://josedavidbarreraortiz-ux.github.io/flor/rosas.json";
+    // URL del JSON en GitHub Pages
+    const jsonURL = "https://josedavidbarreraortiz-ux.github.io/flor/rosas.json";
 
-        fetch(jsonURL)
-            .then(response => {
-                if (!response.ok) throw new Error("No se pudo cargar el JSON: " + response.status);
-                return response.json();
-            })
-            .then(regions => {
-                drawFromJSON(regions);
-            })
-            .catch(error => {
-                console.error("Error cargando JSON:", error);
-                alert("Error cargando JSON: " + error.message);
-            });
+    fetch(jsonURL)
+      .then(res => {
+        if (!res.ok) throw new Error("No se pudo cargar el JSON");
+        return res.json();
+      })
+      .then(regions => animateDrawing(regions))
+      .catch(err => alert("Error cargando JSON: " + err.message));
 
-        function drawFromJSON(regions) {
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            const all_points = [];
-            for (let r of regions) {
-                for (let p of r.contour) {
-                    all_points.push([p[0], p[1]]);
-                }
-            }
-
-            const min_x = Math.min(...all_points.map(p => p[0]));
-            const max_x = Math.max(...all_points.map(p => p[0]));
-            const min_y = Math.min(...all_points.map(p => p[1]));
-            const max_y = Math.max(...all_points.map(p => p[1]));
-
-            const width = max_x - min_x;
-            const height = max_y - min_y;
-            const scale = Math.min(600 / width, 600 / height);
-            const center_x = (min_x + max_x) / 2;
-            const center_y = (min_y + max_y) / 2;
-
-            for (let region of regions) {
-                const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
-                ctx.fillStyle = color;
-                ctx.strokeStyle = color;
-
-                const points = region.contour;
-                ctx.beginPath();
-
-                const first_x = (points[0][0] - center_x) * scale + canvas.width / 2;
-                const first_y = (center_y - points[0][1]) * scale + canvas.height / 2;
-                ctx.moveTo(first_x, first_y);
-
-                for (let i = 1; i < points.length; i++) {
-                    const x = (points[i][0] - center_x) * scale + canvas.width / 2;
-                    const y = (center_y - points[i][1]) * scale + canvas.height / 2;
-                    ctx.lineTo(x, y);
-                }
-
-                ctx.lineTo(first_x, first_y);
-                ctx.closePath();
-                ctx.fill();
-            }
+    function animateDrawing(regions) {
+      // Calcular límites para centrar
+      const all_points = [];
+      for (let r of regions) {
+        for (let p of r.contour) {
+          all_points.push([p[0], p[1]]);
         }
-    </script>
+      }
+
+      const min_x = Math.min(...all_points.map(p => p[0]));
+      const max_x = Math.max(...all_points.map(p => p[0]));
+      const min_y = Math.min(...all_points.map(p => p[1]));
+      const max_y = Math.max(...all_points.map(p => p[1]));
+
+      const width = max_x - min_x;
+      const height = max_y - min_y;
+      const scale = Math.min((canvas.width * 0.8) / width, (canvas.height * 0.8) / height);
+      const center_x = (min_x + max_x) / 2;
+      const center_y = (min_y + max_y) / 2;
+
+      // Preparar lista de segmentos a dibujar
+      const segments = [];
+      for (let region of regions) {
+        const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
+        const points = region.contour.map(p => [
+          (p[0] - center_x) * scale + canvas.width / 2,
+          (center_y - p[1]) * scale + canvas.height / 2
+        ]);
+
+        for (let i = 0; i < points.length; i++) {
+          const p1 = points[i];
+          const p2 = points[(i + 1) % points.length];
+          segments.push({ p1, p2, color });
+        }
+      }
+
+      // Animación progresiva
+      let index = 0;
+      function drawStep() {
+        if (index < segments.length) {
+          const seg = segments[index];
+          ctx.strokeStyle = seg.color;
+          ctx.beginPath();
+          ctx.moveTo(seg.p1[0], seg.p1[1]);
+          ctx.lineTo(seg.p2[0], seg.p2[1]);
+          ctx.stroke();
+          index++;
+          requestAnimationFrame(drawStep);
+        } else {
+          // Mostrar mensaje al final
+          setTimeout(() => {
+            message.style.opacity = 1;
+          }, 500);
+        }
+      }
+
+      drawStep();
+    }
+  </script>
 </body>
 </html>
