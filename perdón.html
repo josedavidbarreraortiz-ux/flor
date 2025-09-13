@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Perdón 🌹</title>
+  <title>🌹</title>
   <style>
     body {
       margin: 0;
@@ -15,12 +15,18 @@
     }
     #mensaje {
       position: absolute;
-      bottom: 12%; /* más arriba que antes */
+      bottom: 12%; /* lo subimos un poco */
       width: 100%;
       text-align: center;
       font-size: 28px;
       font-family: Arial, sans-serif;
       color: white;
+      opacity: 0;
+      animation: fadeIn 2s ease-in-out 5s forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -34,36 +40,57 @@
       return await resp.json();
     }
 
-    function dibujarRosa(data) {
+    function dibujarRosa(regions) {
       const canvas = document.getElementById("canvas");
       const ctx = canvas.getContext("2d");
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      const regions = data.regions;
-      const offsetY = -120; // 🔼 sube la rosa 120px
+      // Sacamos todos los puntos
+      const all_points = [];
+      for (let r of regions) {
+        for (let p of r.contour) {
+          all_points.push([p[0], p[1]]);
+        }
+      }
 
-      const shapes = regions.map(region => {
-        const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
-        const points = region.contour.map(p => [
-          (p[0] - data.center_x) * data.scale + canvas.width / 2,
-          canvas.height / 2 - (p[1] - data.center_y) * data.scale + offsetY
-        ]);
-        return { color, points };
-      });
+      // Calculamos límites
+      const min_x = Math.min(...all_points.map(p => p[0]));
+      const max_x = Math.max(...all_points.map(p => p[0]));
+      const min_y = Math.min(...all_points.map(p => p[1]));
+      const max_y = Math.max(...all_points.map(p => p[1]));
+
+      const width = max_x - min_x;
+      const height = max_y - min_y;
+      const scale = Math.min((canvas.width * 0.7) / width, (canvas.height * 0.7) / height);
+
+      const center_x = (min_x + max_x) / 2;
+      const center_y = (min_y + max_y) / 2;
+
+      const offsetY = -120; // 🔼 sube la flor
 
       let index = 0;
       function drawStep() {
-        if (index < shapes.length) {
-          const shape = shapes[index];
-          ctx.fillStyle = shape.color;
+        if (index < regions.length) {
+          const region = regions[index];
+          const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
+          ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.moveTo(shape.points[0][0], shape.points[0][1]);
-          shape.points.forEach(p => ctx.lineTo(p[0], p[1]));
+
+          const first_x = (region.contour[0][0] - center_x) * scale + canvas.width / 2;
+          const first_y = (center_y - region.contour[0][1]) * scale + canvas.height / 2 + offsetY;
+          ctx.moveTo(first_x, first_y);
+
+          for (let i = 1; i < region.contour.length; i++) {
+            const x = (region.contour[i][0] - center_x) * scale + canvas.width / 2;
+            const y = (center_y - region.contour[i][1]) * scale + canvas.height / 2 + offsetY;
+            ctx.lineTo(x, y);
+          }
+
           ctx.closePath();
           ctx.fill();
           index++;
-          setTimeout(drawStep, 30); // velocidad de dibujo
+          setTimeout(drawStep, 30);
         }
       }
       drawStep();
