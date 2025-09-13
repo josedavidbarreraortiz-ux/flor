@@ -41,7 +41,7 @@
       canvas.height = window.innerHeight;
 
       const regions = data.regions;
-      const offsetY = -85; // 🔼 sube la rosa, ajusta este valor
+      const offsetY = -80; // 🔼 sube la rosa, ajusta este valor
 
       const shapes = regions.map(region => {
         const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
@@ -76,5 +76,6 @@
   </script>
 </body>
 </html>
+
 
 
