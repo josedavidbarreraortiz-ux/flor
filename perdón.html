@@ -8,10 +8,6 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: black;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       overflow: hidden;
     }
     canvas {
@@ -23,6 +19,8 @@
     .message {
       position: absolute;
       bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
       font-size: 2.5rem;
       color: #fff;
       text-align: center;
@@ -43,22 +41,17 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const message = document.getElementById('message');
-
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // URL del JSON en GitHub Pages
     const jsonURL = "https://josedavidbarreraortiz-ux.github.io/flor/rosas.json";
 
     fetch(jsonURL)
-      .then(res => {
-        if (!res.ok) throw new Error("No se pudo cargar el JSON");
-        return res.json();
-      })
-      .then(regions => animateDrawing(regions))
+      .then(res => res.json())
+      .then(regions => animateFill(regions))
       .catch(err => alert("Error cargando JSON: " + err.message));
 
-    function animateDrawing(regions) {
+    function animateFill(regions) {
       // Calcular límites para centrar
       const all_points = [];
       for (let r of regions) {
@@ -66,7 +59,6 @@
           all_points.push([p[0], p[1]]);
         }
       }
-
       const min_x = Math.min(...all_points.map(p => p[0]));
       const max_x = Math.max(...all_points.map(p => p[0]));
       const min_y = Math.min(...all_points.map(p => p[1]));
@@ -78,43 +70,38 @@
       const center_x = (min_x + max_x) / 2;
       const center_y = (min_y + max_y) / 2;
 
-      // Preparar lista de segmentos a dibujar
-      const segments = [];
-      for (let region of regions) {
+      // Convertir regiones en formas listas para dibujar
+      const shapes = regions.map(region => {
         const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
         const points = region.contour.map(p => [
           (p[0] - center_x) * scale + canvas.width / 2,
           (center_y - p[1]) * scale + canvas.height / 2
         ]);
+        return { color, points };
+      });
 
-        for (let i = 0; i < points.length; i++) {
-          const p1 = points[i];
-          const p2 = points[(i + 1) % points.length];
-          segments.push({ p1, p2, color });
-        }
-      }
-
-      // Animación progresiva
       let index = 0;
-      function drawStep() {
-        if (index < segments.length) {
-          const seg = segments[index];
-          ctx.strokeStyle = seg.color;
+      function drawNext() {
+        if (index < shapes.length) {
+          const { color, points } = shapes[index];
+          ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.moveTo(seg.p1[0], seg.p1[1]);
-          ctx.lineTo(seg.p2[0], seg.p2[1]);
-          ctx.stroke();
+          ctx.moveTo(points[0][0], points[0][1]);
+          for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i][0], points[i][1]);
+          }
+          ctx.closePath();
+          ctx.fill();
+
           index++;
-          requestAnimationFrame(drawStep);
+          setTimeout(drawNext, 100); // velocidad del "pintado" (100ms por pétalo)
         } else {
-          // Mostrar mensaje al final
-          setTimeout(() => {
-            message.style.opacity = 1;
-          }, 500);
+          // Cuando termine, mostrar mensaje
+          setTimeout(() => { message.style.opacity = 1; }, 500);
         }
       }
 
-      drawStep();
+      drawNext();
     }
   </script>
 </body>
