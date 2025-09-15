@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌹</title>
+  <title>🌹 Flor animada</title>
   <style>
     body {
       margin: 0;
@@ -35,66 +35,36 @@
   <div id="mensaje">Perdón,<br>no quería hacerlo 🥺🖤</div>
 
   <script>
-    from turtle import *   
-import re   
-import docx   
-   
-data = docx.Document("tulipanes.docx")
-coordenadas = []   
-color = []
-   
-for i in data.paragraphs:   
-    try:
-        patron = r'[-+]?\d*\.\d*(?:[eE][-+]?\d+)?'
-        patron_coord = r'\(' + patron + r' ?\, ?' + patron
-        patron_color = patron_coord + r' ?\, ?' + patron + r'\)'
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-        coord_stg_tup = re.findall(patron_coord + r'\)', i.text)
-        color_stg_tup = re.findall(patron_color, i.text)
+    let t = 0;
 
-        coord_num_tup = []      
-        color_val = re.findall(r'[-+]?\d*\.\d*',color_stg_tup[0])   
-        color_val_lst = [float(k) for k in color_val]   
-        color.append(tuple(color_val_lst))   
-   
-        for j in coord_stg_tup:   
-            coord_pos = re.findall(r'[-+]?\d*\.\d*',j)   
-            coord_num_lst = [float(k) for k in coord_pos]   
-            coord_num_tup.append(tuple(coord_num_lst))    
-        coordenadas.append(coord_num_tup)   
-    except:   
-        pass   
- 
-pen = Turtle()   
-screen = Screen()   
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2 + 50);
 
-tracer(2)   
-hideturtle()   
-pen.speed(10)
-screen.getcanvas().winfo_toplevel().attributes("-fullscreen", True)
+      ctx.beginPath();
+      for (let i = 0; i < 360; i++) {
+        let angle = (i + t) * Math.PI / 180;
+        let r = 150 * Math.sin(6 * angle); // fórmula de rosa polar
+        let x = r * Math.cos(angle);
+        let y = r * Math.sin(angle);
+        ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = "red";
+      ctx.fill();
+      ctx.restore();
 
-for i in range(len(coordenadas)):   
-    draw = 1   
-    path = coordenadas[i]   
-    col = color[i]   
-    pen.color(col)   
-    pen.begin_fill()   
-    for order_pair in path:   
-        x,y = order_pair   
-        y = -1*y   
-        if draw:   
-            pen.up()   
-            pen.goto(x,y)   
-            pen.down()   
-            draw = 0   
-        else:   
-            pen.goto(x,y)   
-    pen.end_fill()   
-    pen.hideturtle()  
-screen.mainloop() 
+      t += 1; // animación de giro
+      requestAnimationFrame(draw);
+    }
+
+    draw();
   </script>
 </body>
 </html>
-
-
-
