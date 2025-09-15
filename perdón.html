@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌹 Flor animada</title>
+  <title>🌹 Rosa animada</title>
   <style>
     body {
       margin: 0;
@@ -35,36 +35,76 @@
   <div id="mensaje">Perdón,<br>no quería hacerlo 🥺🖤</div>
 
   <script>
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    let t = 0;
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2 + 50);
-
-      ctx.beginPath();
-      for (let i = 0; i < 360; i++) {
-        let angle = (i + t) * Math.PI / 180;
-        let r = 150 * Math.sin(6 * angle); // fórmula de rosa polar
-        let x = r * Math.cos(angle);
-        let y = r * Math.sin(angle);
-        ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.fillStyle = "red";
-      ctx.fill();
-      ctx.restore();
-
-      t += 1; // animación de giro
-      requestAnimationFrame(draw);
+    // Cargar el JSON con los datos de la rosa
+    async function cargarRosa() {
+      const resp = await fetch("rosas.json"); // 👈 asegúrate de subir rosas.json en el mismo repo
+      return await resp.json();
     }
 
-    draw();
+    // Dibujar rosa desde los datos
+    function dibujarRosa(regions) {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Sacamos todos los puntos
+      const all_points = regions.flatMap(r => r.contour);
+
+      // Calculamos límites
+      const min_x = Math.min(...all_points.map(p => p[0]));
+      const max_x = Math.max(...all_points.map(p => p[0]));
+      const min_y = Math.min(...all_points.map(p => p[1]));
+      const max_y = Math.max(...all_points.map(p => p[1]));
+
+      const width = max_x - min_x;
+      const height = max_y - min_y;
+
+      // Ajuste según el dispositivo
+      const isMobile = window.innerWidth < 600;
+      const scaleFactor = isMobile ? 0.95 : 0.7; // más grande en móvil
+      const offsetY = isMobile ? -60 : -120;     // menos desplazado en móvil
+
+      const scale = Math.min(
+        (canvas.width * scaleFactor) / width,
+        (canvas.height * scaleFactor) / height
+      );
+      const center_x = (min_x + max_x) / 2;
+      const center_y = (min_y + max_y) / 2;
+
+      // Animación de pintado
+      let index = 0;
+      function drawStep() {
+        if (index < regions.length) {
+          const region = regions[index];
+          const [r, g, b] = region.color;
+          ctx.fillStyle = `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
+          ctx.beginPath();
+
+          const first_x = (region.contour[0][0] - center_x) * scale + canvas.width / 2;
+          const first_y = (center_y - region.contour[0][1]) * scale + canvas.height / 2 + offsetY;
+          ctx.moveTo(first_x, first_y);
+
+          for (let i = 1; i < region.contour.length; i++) {
+            const x = (region.contour[i][0] - center_x) * scale + canvas.width / 2;
+            const y = (center_y - region.contour[i][1]) * scale + canvas.height / 2 + offsetY;
+            ctx.lineTo(x, y);
+          }
+
+          ctx.closePath();
+          ctx.fill();
+          index++;
+          setTimeout(drawStep, 30); // velocidad del dibujo
+        }
+      }
+      drawStep();
+    }
+
+    // Ejecutar
+    (async function () {
+      const data = await cargarRosa();
+      dibujarRosa(data);
+    })();
   </script>
 </body>
 </html>
