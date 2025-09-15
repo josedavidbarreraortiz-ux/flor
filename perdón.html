@@ -35,74 +35,69 @@
   <div id="mensaje">Perdón,<br>no quería hacerlo 🥺🖤</div>
 
   <script>
-    async function cargarRosa() {
-      const resp = await fetch("https://josedavidbarreraortiz-ux.github.io/flor/rosas.json");
-      return await resp.json();
-    }
+    from turtle import *
+from math import *
 
-    function dibujarRosa(regions) {
-      const canvas = document.getElementById("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+speed(0)
+bgcolor("black")
+goto(0,-40)
 
-      // Sacamos todos los puntos
-      const all_points = [];
-      for (let r of regions) {
-        for (let p of r.contour) {
-          all_points.push([p[0], p[1]]);
-        }
-      }
+# Draw leaves
+for i in range(16):
+    for j in range(18):
+        color('#FFA216'), rt(90)
+        circle(150-j*6, 90), lt(90)
+        circle(150-j*6, 90), rt(180)
+    circle(40,24)
 
-      // Calculamos límites
-      const min_x = Math.min(...all_points.map(p => p[0]));
-      const max_x = Math.max(...all_points.map(p => p[0]));
-      const min_y = Math.min(...all_points.map(p => p[1]));
-      const max_y = Math.max(...all_points.map(p => p[1]));
+# Draw flower center
+color('black') 
+shape('circle')
+shapesize(0.5)
+fillcolor('#8B4513')
+golden_ang = 137.508
+phi = golden_ang*(pi/180)
 
-      const width = max_x - min_x;
-      const height = max_y - min_y;
+for i in range(140):
+    r = 4*sqrt(i)
+    theta = i*phi
+    x = r*cos(theta)
+    y = r*sin(theta)
+    penup(), goto(x, y)
+    setheading(i*golden_ang)
+    pendown(), stamp()
 
-      // 🔥 Ajuste según el dispositivo
-      const isMobile = window.innerWidth < 600;
-      const scaleFactor = isMobile ? 0.95 : 0.7; // más grande en móvil
-      const offsetY = isMobile ? -60 : -120;     // menos desplazado en móvil
+# Define points to draw letters
+def point(x, y):
+    penup(), goto(x, y), pendown()
+    color('black'), fillcolor('#FFA216')
+    begin_fill(), circle(4), end_fill()
 
-      const scale = Math.min((canvas.width * scaleFactor) / width, (canvas.height * scaleFactor) / height);
-      const center_x = (min_x + max_x) / 2;
-      const center_y = (min_y + max_y) / 2;
+# Function to draw 'T'
+def draw_T(x, y):
+    positions_t = [(x, y+30), (x+6, y+30), (x+12, y+30), (x+18, y+30), (x+24, y+30),
+                   (x+12, y+30), (x+12, y+24), (x+12, y+18), (x+12, y+12), (x+12, y+6), (x+12, y)]
 
-      let index = 0;
-      function drawStep() {
-        if (index < regions.length) {
-          const region = regions[index];
-          const color = `rgb(${Math.floor(region.color[0])}, ${Math.floor(region.color[1])}, ${Math.floor(region.color[2])})`;
-          ctx.fillStyle = color;
-          ctx.beginPath();
+    for pos in positions_t:
+        point(*pos)
 
-          const first_x = (region.contour[0][0] - center_x) * scale + canvas.width / 2;
-          const first_y = (center_y - region.contour[0][1]) * scale + canvas.height / 2 + offsetY;
-          ctx.moveTo(first_x, first_y);
+# Function to draw 'Ú'
+def draw_U(x, y):
+    positions_u = [(x, y+30), (x, y+24), (x, y+18), (x, y+12), (x, y+6),
+                   (x+3, y+3), (x+6, y), (x+12, y-1), (x+18, y), (x+21, y+3),
+                   (x+24, y+6), (x+24, y+12), (x+24, y+18), (x+24, y+24), (x+24, y+30),
+                   (x+12, y+36), (x+16, y+40)]
 
-          for (let i = 1; i < region.contour.length; i++) {
-            const x = (region.contour[i][0] - center_x) * scale + canvas.width / 2;
-            const y = (center_y - region.contour[i][1]) * scale + canvas.height / 2 + offsetY;
-            ctx.lineTo(x, y);
-          }
+    for pos in positions_u:
+        point(*pos)
 
-          ctx.closePath();
-          ctx.fill();
-          index++;
-          setTimeout(drawStep, 30);
-        }
-      }
-      drawStep();
-    }
+# Draw 'TÚ'
+draw_T(-27, -20)
+draw_U(7, -20)
 
-    (async function () {
-      const data = await cargarRosa();
-      dibujarRosa(data);
-    })();
+hideturtle()
+done()
   </script>
 </body>
 </html>
+
